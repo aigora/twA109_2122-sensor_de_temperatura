@@ -7,7 +7,7 @@ int menu_ppal(void)
 	float T; // La T de temperatura viene dada por el sensor
 	int tiempo;
 
-	while (tiempo < 100000)
+	for (tiempo =0; tiempo<100000; tiempo++)
 	{
 		if (tiempo % 30 == 0)
 		{
@@ -27,7 +27,5 @@ int menu_ppal(void)
 
 			//ALMACENAMOS LA INFORMACION
 		}
-
 	}
-
 }
