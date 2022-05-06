@@ -1,0 +1,53 @@
+/*CODIGO para pantalla LCD */
+
+#include <DHT.h>      // INCLUIR LIBRERIA
+#include <LiquidCrystal.h>           //importar libreria
+
+LiquidCrystal lcd(8, 7, 6, 5, 4, 3, 2);    //crear el objeto con los pines que se van a usarxxxxxxxxxx
+DHT dht(9, DHT11);    // CREAR UN OBJETO PASANDO PIN Y TIPO DE SENSOR POR PARAMETROS
+
+void setup() {
+    delay(6000); //6 segundos de espera
+    Serial.begin(9600); // INICIALIZAR LA COMUNICACION SERIAL
+    dht.begin();        // INICIALIZAR EL DHT
+    lcd.begin(16, 2); // inicializar la pantalla con la cantidad de (2) fila y (16)columna que esta tiene
+}
+
+void loop() {
+
+    float TemC = dht.readTemperature();            // GRADOS CELCIUS
+   
+    if (isnan(TemC)) // SI LO QUE DEBUELVE NO ES UN NUMERO, IMPRIMIR MENSAJE DE ERRROR
+    {          
+        lcd.setCursor(0, 0); //COLOCAR EN POSICION
+        lcd.print("Revisar conexion");
+    else
+    {
+        lcd.setCursor(0, 0); //COLOCAR EN POSICION
+        lcd.print("Tem:" + String(TemC, 1) + "C  ");
+    }
+    delay(5000);   //ESPERAR 5 SEGUNDOS
+}
+/Codigo en monitor serial/
+#include <DHT.h>      // INCLUIR LIBRERIA
+DHT dht(9, DHT11);    // CREAR UN OBJETO PASANDO PIN Y TIPO DE SENSOR POR PARAMETROS
+
+void setup() {
+    Serial.begin(9600); // INICIALIZAR LA COMUNICACION SERIAL
+    dht.begin();        // INICIALIZAR EL DHT
+}
+
+void loop() {
+
+    float TemC = dht.readTemperature();            // GRADOS CELCIUS
+   // float TemF = dht.readTemperature(true);        // GRADOS FAHRENHEIT
+   
+    if (isnan(TemC)) { // SI LO QUE DEBUELVE NO ES UN NUMERO
+        Serial.println("Revisar conexion");        // IMPRIMIR MENSAJE DE ERRROR
+    }
+    else
+    {
+        Serial.println("Tem:" + String(TemC, 1) + "C  ");
+    }
+    delay(5000);   //ESPERAR 5 SEGUNDOS
+}
