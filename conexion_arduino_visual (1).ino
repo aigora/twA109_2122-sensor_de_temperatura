@@ -10,8 +10,8 @@ void loop()
   {
     String str = Serial.readStringUntil('\n');
 
-    if(str.compareTo("GET_DISTANCIA")==0)
-      str="DISTANCIA=25.378";
+    if(str.compareTo("GET_TEMPERATURA")==0)
+      str="TEMPERATURA=25.378";
     else
       str="COMANDO DESCONOCIDO";
     Serial.println(str);    
