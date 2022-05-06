@@ -1,0 +1,85 @@
+#include<stdio.h>
+#include<stdlib.h>
+#define LONGCAD 50
+#define N 1000
+Registro registros[N];
+typedef struct
+{
+	int dia;
+	int mes;
+	int anio;
+}fecha;
+typedef struct
+{
+	struct fecha[LONGCAD];
+	int hora;
+	int minutos;
+	int temperatura;
+}Registro;
+int main()
+{
+	Registro leer_datos_temperatura();
+	int mostrar_datos_temperatura(Registro t);
+}
+int mostrar_datos_temperatura_2(Registro* u, int n, char* login);
+Registro leer_datos_temperatura()
+{
+	Registro registro;
+	char intro;
+	printf("Nuevo registro\n");
+	printf("Dia:");
+	scanf_s("%d", &fecha.dia);
+	printf("Mes:");
+	scanf_s("%d", &fecha.mes);
+	printf("Anio:");
+	scanf_s("%d", &fecha.anio);
+	printf("hora:");
+	scanf_s("%d", &registro.hora);
+	printf("minutos:");
+	scanf_s("%d", &registro.minutos);
+	printf("Temperatura:");
+	scanf_s("%d", &registro.temperatura);
+	intro = getchar();
+	return registro;
+}
+
+int mostrar_datos_temperatura(Registro t)
+{
+	printf("%d\t%d\t%d\t", fecha.dia, fecha.mes, fecha.anio);
+	printf("%d\t%d\t", t.hora, t.minutos);
+	printf("%d\n", t.temperatura);
+}
+
+void listado_registro(Registro* registro, int n)
+{
+	int i;
+	if (n == 0)
+		printf("En este momento no hay usuarios en la aplicación\n");
+	else
+	{
+		printf("\tDia\tMes     \tanio\thora\tminuto\ttemperatura\n");
+		printf("\t======\t==============\t=====\t====\t======\t======\n");
+		for (i = 0;i < n;i++)
+			mostrar_datos_temperatura(Registro[i]);
+	}
+}
+int posicion_datos_temperatura(Registro* t, int n, char* temperatura)
+{
+	int i, posicion = ‐1;
+	for (i = 0;i < n && posicion == ‐1;i++)
+		if (strcmp(temperatura, t[i].temperatura) == 0)
+			posicion = i;
+	return posicion;
+}
+void consulta_datos_temperatura(Usuario* t, int n)
+{
+	char login[LONGCAD];
+	int posicion = ‐1;
+	printf("Introduzca login a buscar:");
+	gets_s(temperatura, LONGCAD);
+	posicion = posicion_datos_temperatura(t, n, temperatura);
+	if (posicion == ‐1)
+		printf("No existe ningún registro con esa temeratura\n");
+	else
+		mostrar_datos_temperatura(t[posicion]);
+}
