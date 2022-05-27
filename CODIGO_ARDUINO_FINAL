@@ -1,164 +1,182 @@
 #include <DHT.h>      // INCLUIR LIBRERIA
 #include <LiquidCrystal.h>           //importar libreria
 
-enum Estados {MODO_MANUAL, MODO_ALARMA_ON,MODO_ALARMA_OFF};
+enum Estados {MODO_MANUAL, MODO_ALARMA_ON,MODO_ALARMA_OFF,CAMBIAR_T_CRIT};
 Estados estado=MODO_MANUAL;
 
-const int DHTPin = 10;     //Pin al que conectamos el sensor 
-const int LedPin = 11;     //Pin al que conectamos la alarma en forma de led
-LiquidCrystal lcd(8, 7, 6, 5, 4, 3, 2);    //Pines a los que conectamos la pantalla LCD
-DHT dht(10, DHT11);    // Creamos el objeto del sensor usado, con su pin correspondiente
+const int DHTPin = 10;     // what digital pin we're connected to
+const int LedPin = 11;
+LiquidCrystal lcd(8, 7, 6, 5, 4, 3, 2);    //crear el objeto con los pines que se van a usarxxxxxxxxxx
+DHT dht(10, DHT11);    // CREAR UN OBJETO PASANDO PIN Y TIPO DE SENSOR POR PARAMETROS
 
-String mensaje_entrada;  //Mensaje en formato string pasado de Visual a Arduino
-String mensaje_salida;   //Mensaje en formato string pasado de Arduino a Visual
+String mensaje_entrada;
+String mensaje_salida;
 
 void setup() 
 {
-   delay(5000);   //5 segundos de espera
+   delay(5000); //6 segundos de espera
    Serial.begin(9600);
-   dht.begin();        // Inicializacion del sensor DHT11
-   lcd.begin(16, 1);   // inicializar la pantalla con la cantidad de (1) fila y (16)columna que esta tiene
-   pinMode(LedPin, OUTPUT); //Inicializamos el Led e indicamos que funciona como OUTPUT
+   dht.begin();        // INICIALIZAR EL DHT
+   lcd.begin(16, 1); // inicializar la pantalla con la cantidad de (2) fila y (16)columna que esta tiene
+   pinMode(LedPin, OUTPUT);
 }
 
 void loop ()
 {
-  delay(1000);  //Señal de espera de 1 segundo
-    
-  procesar_mensajes();   //Funcion que procesa el mensaje introducido desde Visual
-                         //Es la funcion base para la comunicacion Visual-Arduino
-                         
-  switch (estado)        //Estados por los que pasa el sistema:
+  delay(1000);
+  
+  float t_crit=26.0;
+  
+  procesar_mensajes();
+  switch (estado)
   {
-    case MODO_MANUAL:  //Modo en el que permanece mientras no se le introduce desde visual el mensaje necesario para
-                       //activar la alarma.
+    case MODO_MANUAL:
         break;
-    case MODO_ALARMA_ON:              //ALARMA ACTIVA, saltará cuando se supere la Tmax durante más tiempo del indicado
-        modo_alarma(26.5,5.0,2000,1); //Llamada a la funcion que determina si se enciende el led o cambia de 
-                                      //estado en funcion de la temperatura recibida comparandolo con los parametros mandados a la funcion
-                                      //Dichos parametros son: temperatura critica, tiempo necesario superando dicha temperatura, tiempo 
-                                      //que estara encendido el led, y el modo de funcionamiento del led.
+    case MODO_ALARMA_ON:
+        modo_alarma(t_crit,5.0,2000,1); //<-- ENTRADAS PARA LA FUNCION DE ALARMA??
         break;
-    case MODO_ALARMA_OFF:              //ALARMA INACTIVA, la alarma esta apagada, por lo que aunque se supere la tcrit no se encendera el led
-        modo_alarma(26.5,5.0,2000,0);  //Llamada a la misma funcion que antes, pasandole los mismos parámetros pero con el led apagado.
-                                       //Si recibe la señal para encender la alarma pasa a MODO_ALARMA_ON, sino se pasa al MODO_MANUAL hasta
-                                       //recibir dicha señal.
+    case MODO_ALARMA_OFF:
+        modo_alarma(t_crit,5.0,2000,0);
         estado=MODO_MANUAL;
-        break;   
+        break;
+    case CAMBIAR_T_CRIT:
+        t_crit = cambiar_t_crit();
+        break;
+      
   }
 }
 
-
-void procesar_mensajes(void)        //FUNCION PARA IDENTIFICAR MENSAJES RECIBIDOS DESDE VISUAL
+void procesar_mensajes(void)
 {
-  if( Serial.available()> 0)        
+  if( Serial.available()> 0) 
   {
-    mensaje_entrada = Serial.readStringUntil('\n');   //Adjudica a la variable mensaje_entrada una cadena de caracteres mandada desde visual
-    if (mensaje_entrada.compareTo("GET_TEMPERATURA")==0)   //Compara la cadena recibida con "GET_TEMPERATURA" para saber si el sensor  
-                                                           //debe empezar a leer temperaturas
+    mensaje_entrada = Serial.readStringUntil('\n');
+    if (mensaje_entrada.compareTo("GET_TEMPERATURA")==0)
     {
-      float TemC = dht.readTemperature();            // Adjudica a la variable de tipo float la temperatura leida por el sensor
+      float TemC = dht.readTemperature();            // GRADOS CELCIUS
    
-      if (isnan(TemC))   // Si no recibe un numero, imprime mensaje de error
+      if (isnan(TemC)) // SI LO QUE DEBUELVE NO ES UN NUMERO, IMPRIMIR MENSAJE DE ERRROR
       {          
-          lcd.setCursor(0, 0);            //Coloca en posicion el cursor de la pantalla lcd
-          lcd.print("Revisar conexion");  //Imprime por pantalla el error correspondiente
+          lcd.setCursor(0, 0); //COLOCAR EN POSICION
+          lcd.print("Revisar conexion");
       }
-      else   //En el caso de que si que reciba una temperatura
+      else
       {
-          lcd.setCursor(0, 0); 
-          lcd.print("Tem:" + String(TemC, 1) + "C  "); //Imprime en la pantalla LCD la temperatura correspondiente en grados centigrados
+          lcd.setCursor(0, 0); //COLOCAR EN POSICION
+          lcd.print("Tem:" + String(TemC, 1) + "C  ");
       }
-      mensaje_salida=String("Tem:" + String(TemC, 1) + "C  " );  //y además, adjudica a la variable mensaje_salida dicha temperatura
-    }                                                            //para enviarla de vuelta a visual y el programa haga la funcion correspondiente
-                                                                 //con esta informacion.
+      mensaje_salida=String("Tem:" + String(TemC, 1) + "C  " );
+    }
     else
-      if (mensaje_entrada.compareTo("SET_MODO_ALARMA")==0)   //Compara el mensaje enviado desde visual con "SET_MODO_ALARMA" y en el caso de que
-                                                             //coincida , su funcionamiento dependera del estado en que se encuetre         
+      if (mensaje_entrada.compareTo("SET_MODO_ALARMA")==0)                  ////////////
       {
-        if (estado==MODO_ALARMA_OFF || estado==MODO_MANUAL)  //Si estaba en modo manual(predeterminado) o con la alarma apagada, pasara
-        {                                                    //a activar la alarma la cual saltara cuando se cumplan los parametros asignados
+        if (estado==MODO_ALARMA_OFF || estado==MODO_MANUAL)
+        {
             estado=MODO_ALARMA_ON;
-            mensaje_salida=String("ALARMA_OPERATIVA");       //Manda de vuelta a visual la situacion de la alarma 
-            lcd.print("ALARMA_OPERATIVA");                   //e imprime por pantalla el mismo mensaje
+            mensaje_salida=String("ALARMA_OPERATIVA");
+            lcd.print("ALARMA_OPERATIVA");
         }
         else
         {
-          estado=MODO_ALARMA_OFF;                            //En el caso de encontrarse en el estado de alarma activa, dicha alarma 
-          mensaje_salida=String("ALARMA_INACTIVA");          //pasara a estar desactivada(MODO_ALARMA_OFF)
+          estado=MODO_ALARMA_OFF;
+          mensaje_salida=String("ALARMA_INACTIVA");
           lcd.print("ALARMA_INACTIVA");
          }
       }
-      else   
-         mensaje_salida="COMANDO DESCONOCIDO";        //En el caso de que haya un erro y no se corresponda el mensaje con ninguno de los anteriores
-         Serial.println(mensaje_salida);              //imprimira "COMANDO DESCONOCIDO""
-                                                      //y con Serial.println devuelve a arduino el mensaje de salida.
+      else
+        if (mensaje_entrada.compareTo("CAMBIAR_T_CRIT")==0)
+        {
+          estado=CAMBIAR_T_CRIT;
+          mensaje_salida=String("Introduce la nueva temperatura crítica:");
+          lcd.print("CAMBIA TCRIT");
+        }
+        else
+        {     
+          mensaje_salida="COMANDO DESCONOCIDO";
+        }
+
+    Serial.println(mensaje_salida);
+    
   }
 }
 
 
 
-void modo_alarma(float tem_max,int ms_sup, int ms_led, int modo)      //definimos la funcion modo alarma, la cual tiene 4 entradas y no 
-{                                                                     //devuelve ninguna variable
-  static int  estado_alarma=0;            // Inicializamos el estado actual de la alarma
-  static unsigned long  tiempo_alarma=0;  // Inicializamos el tiempo de la alarma
-  static unsigned long tiempo_led_on=0;   // Inicializamos el tiempo led on
-  float tem=0.0; // Inixializamos la temperatura captada por el sensor
-  int i,rango;   //Declaramos dos variables de tipo entero
+void modo_alarma(float tem_max,int ms_sup, int ms_led, int modo)
+{
+  static int  estado_alarma=0; // Estado actual
+  static unsigned long  tiempo_alarma=0; // Ref. de tiempo alarma
+  static unsigned long tiempo_led_on=0; // Ref. de tiempo led on
+  float tem=0.0; // Temperatura captada
+  int i,rango;  
 
-  if (modo==0)        //Cuando el modo (variable referente al estado del led) es igual a 0, el led esta apagado
+  if (modo==0)
   {
-    estado_alarma=0;  //Por lo que el estado de la alarma se mantiene en 0
-    digitalWrite(LedPin,LOW); //Indicamos que el led está apagado
+    estado_alarma=0;
+    digitalWrite(LedPin,LOW);
   }
-  else                                    //En el caso de que el modo no sea 0 (SERA = 1):
-    {                      
-      float tem = dht.readTemperature();  //Asignamos a la variable la temperatura leida por el sensor
-      rango = tem>=tem_max?1:0;           //En el caso de que la temperatura sea mayor o igual que la t critica, rango es 1, sino sera 0.
-      switch (estado_alarma)              //A partir de aqui va pasando por distinto estados (inicio: estado 0) en funcion de las señales
-      {                                   //que reciba.
-        case 0:        // Estado inicial
+  else
+    {
+      float tem = dht.readTemperature();
+      rango = tem>=tem_max?1:0;// ¿Hay obstáculo en el rango?
+      switch (estado_alarma)
+      {
+        case 0: // Estado inicial
          if (rango==1) // Si la temperatura supera la tcrit
          {
            tiempo_alarma=millis(); // Referencia temporal
-           estado_alarma=1; //Pasa del estado 0 al 1
+           estado_alarma=1; // Cambia al estado 1
          }
          break;
 
 
-         case 1: // En este estado, se ha superado ahce poco la t critica y detecta si se supera durante el tiempo suficiente
-           if (millis()-tiempo_alarma>ms_sup) // Si la superación ha permanecido el tiempo mínimo requerido 
+         case 1: // Se acaba de superar recientemente la tcrit
+           if (millis()-tiempo_alarma>ms_sup) // Si la superación ha permanecido el tiempo mínimo requerido
            {
-             estado_alarma=2;           //Cambia al estado 2
-             digitalWrite(LedPin,HIGH); // El led pasa a estar encendido (HIGH)
-             Serial.println("ATENCION: SE HA SUPERADO LA TEMPERATURA CRITICA"); //Manda a visual el mensaje anterior
-             lcd.print("ATENCION: SE HA SUPERADO LA TEMPERATURA CRITICA");      //Imprime en la pantalla lcd que se supero la t critica
+             estado_alarma=2; // Cambio de estado
+             digitalWrite(LedPin,HIGH); // Activa el led de alarma
+             Serial.println("ATENCION: SE HA SUPERADO LA TEMPERATURA CRITICA");
+             lcd.print("ATENCION: SE HA SUPERADO LA TEMPERATURA CRITICA");
            }
            else
-           if (rango==0)      //En el caso de que no se supere la t critica
-             estado_alarma=0; //Regresa al estado inicial 
+           if (rango==0)  // No se ha superado la temperatura durante el tiempo minimo
+             estado_alarma=0;  // 
         break;
 
 
-        case 2:         // En este estado la alarma esta activa con el led encendido
-         if (rango==0)  // Cuando deje de superarse la t critica
+        case 2: // Alarma activa
+         if (rango==0)  // Si deja de superarse la temperatura
          {
-           tiempo_led_on=millis(); // Empieza el contador del tiempo que se mantiene encendido el led sin estar superando la t
-           estado_alarma=3; // Cambia al estado 3
+           tiempo_led_on=millis(); // Inicia temporización para mantener el led 
+           estado_alarma=3; // Cambio de estado
          }
          break;
 
 
-         case 3: // El led sigue encendido pero la temperatura ya no es superada
-         if (millis()-tiempo_led_on>ms_led) //Al pasar el tiempo en el que el led se mantiene encendido en estas circunstancias
+         case 3: // Se ha dejado de superar la tcrit pero el led continua encendio
+         if (millis()-tiempo_led_on>ms_led) // Si ha pasado el tiempo del led on
          {
-           digitalWrite(LedPin,LOW); //Manda una señal para apagar el led
-           estado_alarma=0;          //y se vuelve al estado inicial
-           Serial.println("ATENCION: YA NO ESTAMOS EN ESTADO DE ALERTA");           
+           digitalWrite(LedPin,LOW); //Apaga led
+           estado_alarma=0; //Regresa a estado inicial
+           Serial.println("ATENCION: YA NO HAY RIESGO POR SOBRECALENTAMIENTO");           
          }
          else
           if (rango==1) // Si se vuelve a superar tcrit
             estado_alarma=2; // Regresa a estado 2
       }
     }
+}
+
+float cambiar_t_crit()
+{
+    float t_crit;
+
+    if(Serial.available()>0)
+    {
+      mensaje_entrada=Serial.readStringUntil('\n');
+      float t_crit = mensaje_entrada.toFloat();
+      estado=MODO_MANUAL;
+      mensaje_salida=String("Se ha cambiado la temperatura critica");
+    }
+    return t_crit;
 }
