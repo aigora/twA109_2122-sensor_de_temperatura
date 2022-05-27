@@ -34,13 +34,13 @@ void loop ()
                        //activar la alarma.
         break;
     case MODO_ALARMA_ON:              //ALARMA ACTIVA, saltará cuando se supere la Tmax durante más tiempo del indicado
-        modo_alarma(15.0,5.0,2000,1); //Llamada a la funcion que determina si se enciende el led o cambia de 
+        modo_alarma(26.5,5.0,2000,1); //Llamada a la funcion que determina si se enciende el led o cambia de 
                                       //estado en funcion de la temperatura recibida comparandolo con los parametros mandados a la funcion
                                       //Dichos parametros son: temperatura critica, tiempo necesario superando dicha temperatura, tiempo 
                                       //que estara encendido el led, y el modo de funcionamiento del led.
         break;
     case MODO_ALARMA_OFF:              //ALARMA INACTIVA, la alarma esta apagada, por lo que aunque se supere la tcrit no se encendera el led
-        modo_alarma(15.0,5.0,2000,0);  //Llamada a la misma funcion que antes, pasandole los mismos parámetros pero con el led apagado.
+        modo_alarma(26.5,5.0,2000,0);  //Llamada a la misma funcion que antes, pasandole los mismos parámetros pero con el led apagado.
                                        //Si recibe la señal para encender la alarma pasa a MODO_ALARMA_ON, sino se pasa al MODO_MANUAL hasta
                                        //recibir dicha señal.
         estado=MODO_MANUAL;
