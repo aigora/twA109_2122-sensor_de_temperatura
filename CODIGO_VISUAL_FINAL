@@ -1,4 +1,3 @@
-
 #include <stdio.h>					      //Incluimos las bibliotecas necesarias para el correcto funcionamiento del programa
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +18,7 @@ typedef struct						    //Creamos una estructura de tipo registro donde
 	int minutos;
 	float temperatura[N];
 }registro;
-														//Declaramos las distintas funciones a las que iremos llamando a lo largo												//de todo el programa
+//Declaramos las distintas funciones a las que iremos llamando a lo largo												//de todo el programa
 int menu(void);											//Imprime las opciones y devuelve la opcion escogida
 void verifica_sensores(Serial*, char*);					//Lee una temperatura para comprovar el funcionamiento del sensor
 registro monitorizar_sensor_temperatura(Serial*, int*); //Realiza una series de lecturas de t durante cierto tiempo
@@ -49,7 +48,7 @@ int main(void)		//FUNCION PRINCIPAL
 		switch (opcion_menu)			//Llamada a la funcion correspondiente en cada opcion
 		{
 		case 0: break;							//0->Vuelve a pedir otra opcion
-		case 1:	
+		case 1:
 			verifica_sensores(Arduino, puerto); //1->Hace una lectura del sensor para comprobar su correcto funcionamiento
 			break;
 		case 2:
@@ -63,10 +62,10 @@ int main(void)		//FUNCION PRINCIPAL
 			escribir_fichero_registro(&r, nr, nt); //4->Genera un fichero con las temperaturas captadas en el caso dos guardadas en registro
 			break;
 		case 5:									   //5->Cierra el programa
-			break;												
+			break;
 		default: printf("\nOpci�n incorrecta\n");  //CUalquier otro numero imprime el mensaje anterior
 		}
-	} while (opcion_menu != 5);			
+	} while (opcion_menu != 5);
 	return 0;
 }
 
@@ -123,7 +122,7 @@ float leer_sensor_temperatura(Serial* Arduino)			  //funcion encargada de mandar
 	float temperatura;                 //Declaracion de variables
 	int bytesRecibidos;
 	char mensaje_recibido[MAX_BUFFER];
-																					   //Almacena en la variable bytesRecibidos el espacio que
+	//Almacena en la variable bytesRecibidos el espacio que
 	bytesRecibidos = Enviar_y_Recibir(Arduino, "GET_TEMPERATURA\n", mensaje_recibido); //ocupa el mensaje devuelto desde arduino, el cual se alamcena en
 																					   //la variable mensaje_recibido. Tambien envia a arduino un mensaje
 	if (bytesRecibidos <= 0)                                    //En este caso el programa no ha recibido mensaje de respuesta de arduino
@@ -296,11 +295,11 @@ void escribir_fichero_registro(registro* r, int nr, int nt)   //Funcion que gene
 		fprintf(pf, "Numero de temperaturas en registro %d: %d\n", nr + 1, nt); //Imprime el numero de temperaturas captadas
 		for (i = 0; i < nr; i++)
 		{
-			fprintf(pf, "%d\n", (r + i)->dia);          //Se imprimen el resto de datos que identifican las tmperaturas leidas en una fecha determinada
+			fprintf(pf, "%d /", (r + i)->dia);          //Se imprimen el resto de datos que identifican las tmperaturas leidas en una fecha determinada
 
-			fprintf(pf, "%d\n", (r + i)->mes);
+			fprintf(pf, "%d /", (r + i)->mes);
 			fprintf(pf, "%d\n", (r + i)->anio);
-			fprintf(pf, "%d\n", (r + i)->hora);
+			fprintf(pf, "%d :", (r + i)->hora);
 			fprintf(pf, "%d\n", (r + i)->minutos);
 			for (j = 0; j < nt; j++)
 			{
